@@ -4,6 +4,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	tf "github.com/tensorflow/tensorflow/tensorflow/go"
+)
+
+var (
+	graphFile = "/model/tensorflow_inception_graph.pb"
+	labelsFile = "/model/imagenet_comp_graph_label_strings.txt"
 )
 
 func main() {
@@ -19,3 +26,16 @@ func main() {
 	defer resp.Body.Close()
 }
 
+func loadGraphAndLabels() (*tf.Graph, []string,error) {
+	model, err := ioutil.ReadFile(graphFile)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	g := tf.NewGraph()
+	if err = g.Import(model, ""); err != nil {
+		return nil, nil, err
+	}
+
+	f, err := os.Open(labelsFile)
+}
