@@ -1,2 +1,2 @@
-# -ImagerecognitioninGo
-Image recognition in Go using TensorFlow
+## Image recognition in Go using TensorFlow
+
