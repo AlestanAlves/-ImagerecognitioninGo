@@ -24,9 +24,17 @@ func main() {
 		log.Fatalf("unable to get an image: %v", err)
 	}
 	defer resp.Body.Close()
+
+	modelGraph, labels, err := loadGraphAndLabels()
+	if err != nil {
+		log.Fatalf("unable to load graph and labels: %w", err)
+	}
 }
 
-func loadGraphAndLabels() (*tf.Graph, []string,error) {
+func normalizeImage(body io.ReadCloser) (*tf.Tensor, error) {
+	tf.NewTensor()
+}
+func loadGraphAndLabels() (*tf.Graph, []string,error) 	{
 	model, err := ioutil.ReadFile(graphFile)
 	if err != nil {
 		return nil, nil, err
@@ -38,4 +46,16 @@ func loadGraphAndLabels() (*tf.Graph, []string,error) {
 	}
 
 	f, err := os.Open(labelsFile)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer f.Close()
+
+	var labels []string
+	scanner := bufio.NewScanner(labelsFile)
+	for scanner.Scan(){
+		labels = append(labels, scanner.Text())
+	}
+
+	return g, labelsFile, nil
 }
