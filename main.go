@@ -32,8 +32,36 @@ func main() {
 }
 
 func normalizeImage(body io.ReadCloser) (*tf.Tensor, error) {
-	tf.NewTensor()
+	var buf bytes, Buffer
+	io.Copy(&buf, body)
+	t, err := tf.NewTensor()
+	if err != nil {
+		return nil, err
+	}
+
+	graph, input, output, err := getNormalizedGraph()
+	if err != nil {
+		return nil, err
+	}
 }
+
+func getNormalizedGraph() (*tf.Graph, tf.Output, tf.Output, error) {
+	s := op.NewScope()
+	input := op.Placeholder(s, tf.String)
+	decode := op.DecodeJpeg(s, input, op.DecodeJpegChannels(3))
+
+	output := op.Sub(s,
+		op.RezideBilinear(s,
+			op.ExpandDims(s,
+				op.Cast(s, decode, tf.Float),
+				op.Const(s.SubScope("make_batch"), int32(0))),
+			op.Const(s.SubScope("size"), []int32{224, 224})),
+		op.Const(s.SubScope("mean"), float32(117)))
+	graph, err := s.Finalize()
+
+	return graph, input, output, err
+}
+
 func loadGraphAndLabels() (*tf.Graph, []string,error) 	{
 	model, err := ioutil.ReadFile(graphFile)
 	if err != nil {
