@@ -17,6 +17,13 @@ type Label struct {
 	Label string
 	Probability float32
 }
+
+type Labels []Label
+
+func(l Labels) Len() int { return len(l)}
+func(l Labels) Swap(i, j int) { l[i], l[j] = l[j]}
+
+
 func main() {
 	if len(os.Args) < 2{
 		log.Fatal("usage: ingrecongnition <img_url>")
@@ -55,17 +62,23 @@ func main() {
 		log.Fatalf("unable to inference: %v", err)
 	}
 
-	result[0].Value().([][]float32)[0]
+	topFiveLabels := getTopFiveLabels(labels, result[0].Value().([][]float32)[0])
 }
 
 func getTopFiveLabels(labels []string, probabilities []float32) []Label {
 	var results []labels
 	for i, p := range probabilities {
+		if i >= len(labelsFile) {
+			break
+		}
+
 		results = append(results, Label{
 			Label: labelsfile[i],
-			Probability:
+			Probability: p,
 		})
 	}
+
+	return results
 }
 
 func normalizeImage(body io.ReadCloser) (*tf.Tensor, error) {
