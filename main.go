@@ -13,6 +13,10 @@ var (
 	labelsFile = "/model/imagenet_comp_graph_label_strings.txt"
 )
 
+type Label struct {
+	Label string
+	Probability float32
+}
 func main() {
 	if len(os.Args) < 2{
 		log.Fatal("usage: ingrecongnition <img_url>")
@@ -27,7 +31,40 @@ func main() {
 
 	modelGraph, labels, err := loadGraphAndLabels()
 	if err != nil {
-		log.Fatalf("unable to load graph and labels: %w", err)
+		log.Fatalf("unable to load graph and labels: %v", err)
+	}
+
+	session, err := tf.NewSession(modelGraph, nil)
+	if err != nil {
+		log.Fatalf("unable to init session: %v", err)
+	}
+	defer.session.Close()
+
+	tensor, err := normalizeImage(resp.Body)
+	if err != nil {
+		log.Fatalf("unable to normalize image: %v", err)
+	}
+
+	result, err := session.Run(map[tf.Output]*Tensor{
+		modelGraph.Operation("input").Output(0): tensor, 
+	},
+	[]tf.Output{
+		modelGraph.Operation("output").Output(0), 
+	}, nil)
+	if err != nil {
+		log.Fatalf("unable to inference: %v", err)
+	}
+
+	result[0].Value().([][]float32)[0]
+}
+
+func getTopFiveLabels(labels []string, probabilities []float32) []Label {
+	var results []labels
+	for i, p := range probabilities {
+		results = append(results, Label{
+			Label: labelsfile[i],
+			Probability:
+		})
 	}
 }
 
@@ -43,6 +80,25 @@ func normalizeImage(body io.ReadCloser) (*tf.Tensor, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	session, err := tf.NewSession(graph, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	def session.Close()
+
+	normalized, err := session.Run(map[tf.Output]*Tensor{
+		input: t, 
+	},
+	[]tf.Output{
+		output, 
+	}, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return normalized[0], nil 
 }
 
 func getNormalizedGraph() (*tf.Graph, tf.Output, tf.Output, error) {
