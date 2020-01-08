@@ -20,9 +20,9 @@ type Label struct {
 
 type Labels []Label
 
-func(l Labels) Len() int { return len(l)}
-func(l Labels) Swap(i, j int) { l[i], l[j] = l[j]}
-
+func (l Labels) Len() int { return len(l)}
+func (l Labels) Swap(i, j int) { l[i], l[j] = l[j]}
+func (l Labels) Less(i, j int) bool { return l[i].Probability > l[j].Probability}
 
 func main() {
 	if len(os.Args) < 2{
@@ -63,12 +63,15 @@ func main() {
 	}
 
 	topFiveLabels := getTopFiveLabels(labels, result[0].Value().([][]float32)[0])
+	for _, := range topFiveLabels {
+		fmt.Printf("label: %s, probabolity: %.2f%%\n", l.Label, l.Probability*100)
+	}
 }
 
 func getTopFiveLabels(labels []string, probabilities []float32) []Label {
 	var results []labels
 	for i, p := range probabilities {
-		if i >= len(labelsFile) {
+		if i >= len(labels) {
 			break
 		}
 
@@ -78,7 +81,9 @@ func getTopFiveLabels(labels []string, probabilities []float32) []Label {
 		})
 	}
 
-	return results
+	sort.Sort(Labels(results))
+
+	return results[:5]
 }
 
 func normalizeImage(body io.ReadCloser) (*tf.Tensor, error) {
@@ -149,10 +154,10 @@ func loadGraphAndLabels() (*tf.Graph, []string,error) 	{
 	defer f.Close()
 
 	var labels []string
-	scanner := bufio.NewScanner(labelsFile)
+	scanner := bufio.NewScanner(f)
 	for scanner.Scan(){
 		labels = append(labels, scanner.Text())
 	}
 
-	return g, labelsFile, nil
+	return g, labels, nil
 }
